@@ -105,3 +105,10 @@ function constraint_voltage_magnitude_sqr_on_off(pm::_PM.AbstractPowerModel, n::
     JuMP.@constraint(pm.model, w <= vmax^2*z_bus)
     JuMP.@constraint(pm.model, w >= vmin^2*z_bus)
 end
+
+function constraint_log_load(pm::_PM.AbstractPowerModel, n::Int, i::Int, pd::Float64, load_weight::Float64)
+    log_load = _PM.var(pm, n, :log_load, i)
+    z_demand = _PM.var(pm, n, :z_demand, i)
+
+    JuMP.@NLconstraint(pm.model, log_load <= load_weight * log(1 + z_demand * pd))
+end 

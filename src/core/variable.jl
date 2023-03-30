@@ -113,3 +113,16 @@ function variable_load_restoration_indicator(pm::_PM.AbstractPowerModel; nw::Int
 
     report && _IM.sol_component_value(pm, _PM.pm_it_sym, nw, :load, :load_restoration, _PM.ids(pm, nw, :load), load_restoration)
 end
+
+"variable `0 <= log_load[l] <= log(1 + pd[l])` for `l` in loads"
+function variable_log_load(pm::_PM.AbstractPowerModel; nw::Int=nw_id_default, report::Bool=true)
+    log_load = _PM.var(pm, nw)[:log_load] = JuMP.@variable(pm.model, 
+        [l in _PM.ids(pm, nw, :load)],
+        base_name="$(nw)_log_load",
+        lower_bound = 0.0,
+        upper_bound = log(1 + _PM.ref(pm, nw, :load, l)["pd"]),
+        start = log(1 + _PM.comp_start_value(_PM.ref(pm, nw, :load, l), "load_restoration_state"))
+    )
+
+    report && _IM.sol_component_value(pm, _PM.pm_it_sym, nw, :load, :log_load, _PM.ids(pm, nw, :load), log_load)
+end 

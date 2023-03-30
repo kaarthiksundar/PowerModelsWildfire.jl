@@ -13,6 +13,12 @@ function constraint_generation_active(pm::_PM.AbstractPowerModel, i::Int; nw::In
 
 end
 
+""
+function constraint_log_load(pm::_PM.AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    load = _PM.ref(pm, nw, :load, i)
+    load_weight = get(load, "weight", 1.0)
+    constraint_log_load(pm, nw, i, load["pd"], load_weight)
+end 
 
 ""
 function constraint_load_active(pm::_PM.AbstractPowerModel, i::Int; nw::Int=nw_id_default)
