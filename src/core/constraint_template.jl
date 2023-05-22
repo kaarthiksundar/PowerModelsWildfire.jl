@@ -17,7 +17,9 @@ end
 function constraint_log_load(pm::_PM.AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     load = _PM.ref(pm, nw, :load, i)
     load_weight = get(load, "weight", 1.0)
-    constraint_log_load(pm, nw, i, load["pd"], load_weight)
+    log_constant = get(_PM.ref(pm), :log_constant, 1.0)
+    
+    constraint_log_load(pm, nw, i, load["pd"], load_weight, log_constant)
 end 
 
 ""
