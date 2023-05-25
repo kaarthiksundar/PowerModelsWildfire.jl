@@ -84,16 +84,16 @@ function build_ops(pm::_PM.AbstractPowerModel)
         alpha = 0.5
     end
 
-    risk_components = [:bus, :branch] # removed :gen and :load
+    risk_components = [:bus, :branch, :gen, :load]
     for comp_type in risk_components
         for (id,comp) in  _PM.ref(pm, comp_type)
             if ~haskey(comp, "power_risk")
-                Memento.warn(_PM._LOGGER, "$(comp_type) $(id) does not have a power_risk value, using 0.1 as a default")
-                comp["power_risk"] = 0.1
+                Memento.warn(_PM._LOGGER, "$(comp_type) $(id) does not have a power_risk value, using 0.0 as a default")
+                comp["power_risk"] = 0.0
             end
             if ~haskey(comp, "base_risk")
-                Memento.warn(_PM._LOGGER, "$(comp_type) $(id) does not have a base_risk value, using 0.1 as a default")
-                comp["base_risk"] = 0.1
+                Memento.warn(_PM._LOGGER, "$(comp_type) $(id) does not have a base_risk value, using 0.0 as a default")
+                comp["base_risk"] = 0.0
             end
         end
     end
