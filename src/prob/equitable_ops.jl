@@ -87,7 +87,8 @@ function build_equitable_ops(pm::_PM.AbstractPowerModel)
         alpha = 0.5
     end
 
-    for comp_type in [:gen, :load, :bus, :branch]
+    risk_components = [:bus, :branch] # removed :gen and :load
+    for comp_type in risk_components
         for (id,comp) in  _PM.ref(pm, comp_type)
             if ~haskey(comp, "power_risk")
                 Memento.warn(_PM._LOGGER, "$(comp_type) $(id) does not have a power_risk value, using 0.1 as a default")
