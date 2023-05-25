@@ -101,13 +101,13 @@ function build_ops(pm::_PM.AbstractPowerModel)
 
     load_weight = Dict(i => get(load, "weight", 1.0) for (i,load) in _PM.ref(pm, :load))
 
-    if haskey(_PM.ref(pm), :risk_lb) 
+    if haskey(_PM.ref(pm), :risk_ub) 
         JuMP.@constraint(pm.model, 
             sum(z_gen[i]*gen["power_risk"]+gen["base_risk"] for (i,gen) in _PM.ref(pm, :gen))
             + sum(z_bus[i]*bus["power_risk"]+bus["base_risk"] for (i,bus) in _PM.ref(pm, :bus))
             + sum(z_branch[i]*branch["power_risk"]+branch["base_risk"] for (i,branch) in _PM.ref(pm, :branch))
-            + sum(z_demand[i]*load["power_risk"]+load["base_risk"] for (i,load) in _PM.ref(pm,:load)) >= 
-            _PM.ref(pm, :risk_lb)
+            + sum(z_demand[i]*load["power_risk"]+load["base_risk"] for (i,load) in _PM.ref(pm,:load)) <= 
+            _PM.ref(pm, :risk_ub)
         )
 
         JuMP.@objective(pm.model, Max, 
