@@ -84,6 +84,7 @@ function build_ops(pm::_PM.AbstractPowerModel)
         alpha = 0.5
     end
 
+
     risk_components = [:bus, :branch, :gen, :load]
     for comp_type in risk_components
         for (id,comp) in  _PM.ref(pm, comp_type)
@@ -100,19 +101,32 @@ function build_ops(pm::_PM.AbstractPowerModel)
 
     load_weight = Dict(i => get(load, "weight", 1.0) for (i,load) in _PM.ref(pm, :load))
 
-    JuMP.@objective(pm.model, Max,
-        (1-alpha)*(
-                sum(z_demand[i]*load_weight[i]*load["pd"] for (i,load) in _PM.ref(pm,:load))
-        )
-        - alpha*(
+    if haskey(_PM.ref(pm), :risk_lb) 
+        JuMP.@constraint(pm.model, 
             sum(z_gen[i]*gen["power_risk"]+gen["base_risk"] for (i,gen) in _PM.ref(pm, :gen))
             + sum(z_bus[i]*bus["power_risk"]+bus["base_risk"] for (i,bus) in _PM.ref(pm, :bus))
             + sum(z_branch[i]*branch["power_risk"]+branch["base_risk"] for (i,branch) in _PM.ref(pm, :branch))
-            + sum(z_demand[i]*load["power_risk"]+load["base_risk"] for (i,load) in _PM.ref(pm,:load))
-            # + sum(z_storage[i]*storage["power_risk"]+storage["base_risk"] for (i,storage) in _PM.ref(pm, :storage))
+            + sum(z_demand[i]*load["power_risk"]+load["base_risk"] for (i,load) in _PM.ref(pm,:load)) >= 
+            _PM.ref(pm, :risk_lb)
         )
-    )
 
+        JuMP.@objective(pm.model, Max, 
+            sum(z_demand[i]*load_weight[i]*load["pd"] for (i,load) in _PM.ref(pm,:load))
+        )
+    else 
+        JuMP.@objective(pm.model, Max,
+            (1-alpha)*(
+                    sum(z_demand[i]*load_weight[i]*load["pd"] for (i,load) in _PM.ref(pm,:load))
+            )
+            - alpha*(
+                sum(z_gen[i]*gen["power_risk"]+gen["base_risk"] for (i,gen) in _PM.ref(pm, :gen))
+                + sum(z_bus[i]*bus["power_risk"]+bus["base_risk"] for (i,bus) in _PM.ref(pm, :bus))
+                + sum(z_branch[i]*branch["power_risk"]+branch["base_risk"] for (i,branch) in _PM.ref(pm, :branch))
+                + sum(z_demand[i]*load["power_risk"]+load["base_risk"] for (i,load) in _PM.ref(pm,:load))
+                # + sum(z_storage[i]*storage["power_risk"]+storage["base_risk"] for (i,storage) in _PM.ref(pm, :storage))
+            )
+        )
+    end 
 end
 
 ""
